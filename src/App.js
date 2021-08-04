@@ -1,12 +1,25 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import './App.css';
+import prettyPrintTime from './util/prettyPrintTime.js'
 
 function App() {
 
-  const [time, setTime] = React.useState(0)
-  const [timerOn, setTimerOn] = React.useState(false)
+  const [time, setTime] = useState(0)
+  const [timerOn, setTimerOn] = useState(false)
+  const [laps, setLaps] = useState([])
 
-  React.useEffect(() => {
+
+  const recordLap = () => {
+    const previousLapsTotal = laps.reduce(
+      (accumulator, currentValue) => accumulator + currentValue,
+      0
+    )
+    const currentLap = time - previousLapsTotal;
+    const newLaps = [...laps, currentLap]
+    setLaps(newLaps)
+  }
+
+  useEffect(() => {
     let interval = null;
 
     if (timerOn) {
@@ -21,30 +34,57 @@ function App() {
     return () => clearInterval(interval)
 
   }, [timerOn])
+  let lapCounter = 1;
+  const lapDisplay = () => {
+    let string = "Lap " + lapCounter;
+    lapCounter++;
+    return string;
+  }
   return (
     <div className="App">
       <div>
-        <span>{("0" + Math.floor((time / 60000) % 60)).slice(-2)}:</span>
-        <span>{("0" + Math.floor((time / 1000) % 60)).slice(-2)}:</span>
-        <span>{("0" + ((time / 10) % 100)).slice(-2)}</span>
+        <h2> Michael's Stopwatch</h2>
+        <span>
+          {
+            prettyPrintTime(time)
+          }
+
+        </span>
       </div>
       <div>
-        {!timerOn && time == 0 && (
+        {!timerOn && time === 0 && (
           <button onClick={() => setTimerOn(true)} >Start</button>
         )}
         {timerOn && (
-          <button onClick={() => setTimerOn(false)}  >Stop</button>
+          <>
+            <button onClick={() => setTimerOn(false)}  >Stop</button>
+            <button onClick={() => recordLap()}  >Lap</button>
+          </>
         )}
-        {!timerOn && time != 0 && (
+        {!timerOn && time !== 0 && (
           <button onClick={() => setTimerOn(true)} >Resume</button>
         )}
         {!timerOn && time > 0 && (
-
-          <button onClick={() => setTime(0)} >Reset</button>
+          <>
+            <button onClick={() => setTime(0)} >Reset</button>
+            <button onClick={() => recordLap()} >Lap</button>
+          </>
         )}
+        <br></br>
+        <ul>
+          { //map(lap)
+            laps.map(lap => {
+              return (
+                <li>{lapDisplay()} : {prettyPrintTime(lap)}</li>
+              )
+            })
+          }
+        </ul>
       </div>
     </div>
   );
 }
 
 export default App;
+
+
